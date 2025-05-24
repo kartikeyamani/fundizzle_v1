@@ -92,9 +92,37 @@ export default function ProfilePage() {
     }
   };
 
-  const handleSave = () => {
-    alert("Profile saved successfully!")
-    console.log("Profile data:", profile)
+  const handleSave = async () => {
+    try {
+      const response = await fetch('/api/upload-profile', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          ...profile,
+          linkedinJson: {
+            ...profile,
+            firstName: profile.firstName,
+            lastName: profile.lastName,
+            email: profile.email,
+            phone: profile.phone,
+            title: profile.title,
+            summary: profile.summary
+          }
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to save profile');
+      }
+
+      const data = await response.json();
+      alert("Profile saved successfully!");
+    } catch (error) {
+      console.error("Save error:", error);
+      alert("Failed to save profile. Please try again.");
+    }
   }
 
   return (

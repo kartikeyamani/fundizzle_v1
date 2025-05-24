@@ -12,6 +12,37 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY.trim(),
 });
 
+export async function PUT(request: Request) {
+  try {
+    const profileData = await request.json();
+    
+    // Connect to MongoDB
+    await connectToDatabase();
+    
+    // Update profile using email as unique identifier
+    const profile = await Profile.findOneAndUpdate(
+      { email: profileData.email },
+      { 
+        $set: {
+          name: profileData.firstName + ' ' + profileData.lastName,
+          linkedinJson: profileData.linkedinJson,
+          updatedAt: new Date()
+        },
+        $setOnInsert: { createdAt: new Date() }
+      },
+      { upsert: true, new: true }
+    );
+
+    return NextResponse.json({ success: true, profile });
+  } catch (error: any) {
+    console.error("Profile update error:", error);
+    return NextResponse.json(
+      { error: `Failed to update profile: ${error.message}` },
+      { status: 500 }
+    );
+  }
+}
+
 export async function POST(request: Request) {
   try {
     const formData = await request.formData();

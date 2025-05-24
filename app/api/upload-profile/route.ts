@@ -64,10 +64,12 @@ export async function POST(request: Request) {
     const profile = await Profile.findOneAndUpdate(
       { email: profileData.email },
       { 
-        name: profileData.firstName + ' ' + profileData.lastName,
-        linkedinJson: profileData,
-        $setOnInsert: { createdAt: new Date() },
-        updatedAt: new Date()
+        $set: {
+          name: profileData.firstName + ' ' + profileData.lastName,
+          linkedinJson: profileData,
+          updatedAt: new Date()
+        },
+        $setOnInsert: { createdAt: new Date() }
       },
       { upsert: true, new: true }
     );

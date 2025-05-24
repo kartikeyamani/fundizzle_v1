@@ -54,7 +54,23 @@ export async function POST(request: Request) {
     console.log("OpenAI Response:", response.choices[0].message.content);
 
     const profileData = JSON.parse(response.choices[0].message.content);
-    return NextResponse.json({ profileData });
+    
+    // Connect to MongoDB
+    await connectToDatabase();
+    
+    // Create or update profile using email as unique identifier
+    const profile = await Profile.findOneAndUpdate(
+      { email: profileData.email },
+      { 
+        name: profileData.firstName + ' ' + profileData.lastName,
+        linkedinJson: profileData,
+        $setOnInsert: { createdAt: new Date() },
+        updatedAt: new Date()
+      },
+      { upsert: true, new: true }
+    );
+
+    return NextResponse.json({ profileData, profile });
   } catch (error: any) {
     console.error("Profile extraction error:", error.message);
     console.error("Full error:", error);

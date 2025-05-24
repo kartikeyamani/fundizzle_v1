@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import OpenAI from 'openai';
-import pdf from 'pdf-parse';
+import * as pdfParse from 'pdf-parse/lib/pdf-parse.js';
 
 if (!process.env.OPENAI_API_KEY) {
   throw new Error('OpenAI API key is not configured in environment variables');
@@ -25,8 +25,8 @@ export async function POST(request: Request) {
     const arrayBuffer = await pdfFile.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
 
-    // Extract text from PDF
-    const pdfData = await pdf(buffer);
+    // Extract text from PDF using the core parser
+    const pdfData = await pdfParse(buffer);
     const pdfText = pdfData.text;
 
     console.log("Making OpenAI API request with extracted text...");

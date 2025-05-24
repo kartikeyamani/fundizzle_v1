@@ -38,8 +38,44 @@ export default function ProfilePage() {
     setProfile((prev) => ({ ...prev, [field]: value }))
   }
 
+  const [isUploading, setIsUploading] = useState(false)
+  
+  const handleLinkedInUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    
+    setIsUploading(true)
+    try {
+      const formData = new FormData()
+      formData.append('pdf', file)
+      
+      const response = await fetch('/api/upload-profile', {
+        method: 'POST',
+        body: formData
+      })
+      
+      const data = await response.json()
+      if (data.error) throw new Error(data.error)
+      
+      // Update profile state with extracted data
+      setProfile(prev => ({
+        ...prev,
+        firstName: data.profileData.name.split(' ')[0] || '',
+        lastName: data.profileData.name.split(' ').slice(1).join(' ') || '',
+        title: data.profileData.headline || '',
+        summary: data.profileData.summary || '',
+      }))
+      
+      alert("Profile imported successfully!")
+    } catch (error) {
+      console.error("Upload error:", error)
+      alert("Failed to import profile. Please try again.")
+    } finally {
+      setIsUploading(false)
+    }
+  }
+
   const handleSave = () => {
-    // For now, just show an alert
     alert("Profile saved successfully!")
     console.log("Profile data:", profile)
   }
@@ -175,8 +211,26 @@ export default function ProfilePage() {
                 />
               </div>
 
-              {/* Save Button */}
-              <div className="flex justify-end pt-4">
+              {/* Upload and Save Buttons */}
+              <div className="flex justify-between pt-4">
+                <div className="flex items-center gap-4">
+                  <input
+                    type="file"
+                    accept=".pdf"
+                    onChange={handleLinkedInUpload}
+                    className="hidden"
+                    id="linkedin-pdf"
+                  />
+                  <label htmlFor="linkedin-pdf">
+                    <Button
+                      variant="outline"
+                      className="cursor-pointer"
+                      disabled={isUploading}
+                    >
+                      {isUploading ? "Importing..." : "Import LinkedIn PDF"}
+                    </Button>
+                  </label>
+                </div>
                 <Button onClick={handleSave} className="bg-purple-600 hover:bg-purple-700">
                   <Save className="mr-2 h-4 w-4" />
                   Save Profile

@@ -41,39 +41,44 @@ export default function ProfilePage() {
   const [isUploading, setIsUploading] = useState(false)
   
   const handleLinkedInUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file) return
+    const file = e.target.files?.[0];
+    if (!file || !file.name.toLowerCase().endsWith('.pdf')) {
+      alert("Please upload a PDF file");
+      return;
+    }
     
-    setIsUploading(true)
+    setIsUploading(true);
     try {
-      const formData = new FormData()
-      formData.append('pdf', file)
+      const formData = new FormData();
+      formData.append('pdf', file);
       
       const response = await fetch('/api/upload-profile', {
         method: 'POST',
         body: formData
-      })
+      });
       
-      const data = await response.json()
-      if (data.error) throw new Error(data.error)
+      const data = await response.json();
+      if (data.error) throw new Error(data.error);
       
       // Update profile state with extracted data
       setProfile(prev => ({
         ...prev,
-        firstName: data.profileData.name.split(' ')[0] || '',
-        lastName: data.profileData.name.split(' ').slice(1).join(' ') || '',
-        title: data.profileData.headline || '',
+        firstName: data.profileData.firstName || '',
+        lastName: data.profileData.lastName || '',
+        email: data.profileData.email || '',
+        phone: data.profileData.phone || '',
+        title: data.profileData.title || '',
         summary: data.profileData.summary || '',
-      }))
+      }));
       
-      alert("Profile imported successfully!")
+      alert("LinkedIn profile imported successfully!");
     } catch (error) {
-      console.error("Upload error:", error)
-      alert("Failed to import profile. Please try again.")
+      console.error("Upload error:", error);
+      alert("Failed to import profile. Please try again.");
     } finally {
-      setIsUploading(false)
+      setIsUploading(false);
     }
-  }
+  };
 
   const handleSave = () => {
     alert("Profile saved successfully!")

@@ -89,7 +89,7 @@ export async function POST(request: Request) {
     try {
       // Use AI SDK to generate text
       const { text } = await generateText({
-        model: openai("gpt-4o"),
+        model: openai("gpt-3.5-turbo"),
         prompt: prompt,
         temperature: 0.2,
         maxTokens: 4000,

@@ -55,7 +55,7 @@ export async function POST(request: Request) {
 
     console.log("OpenAI Response:", response.choices[0].message.content);
 
-    const profileData = response.choices[0].message.content;
+    const profileData = JSON.parse(response.choices[0].message.content);
     
     // Connect to MongoDB
     await connectToDatabase();

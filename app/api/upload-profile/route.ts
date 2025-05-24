@@ -19,10 +19,14 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "No PDF file provided" }, { status: 400 });
     }
 
+    console.log("Processing PDF file:", pdfFile.name, "Size:", pdfFile.size);
+
     const arrayBuffer = await pdfFile.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
     const base64PDF = buffer.toString('base64');
 
+    console.log("Making OpenAI API request...");
+    
     const response = await openai.chat.completions.create({
       model: "gpt-4-vision-preview",
       messages: [
@@ -45,10 +49,17 @@ export async function POST(request: Request) {
       max_tokens: 4000,
     });
 
-    const profileData = JSON.parse(response.choices[0].message.content || "{}");
+    if (!response.choices[0]?.message?.content) {
+      throw new Error("No content in OpenAI response");
+    }
+
+    console.log("OpenAI Response:", response.choices[0].message.content);
+
+    const profileData = JSON.parse(response.choices[0].message.content);
     return NextResponse.json({ profileData });
   } catch (error: any) {
-    console.error("Profile extraction error:", error);
+    console.error("Profile extraction error:", error.message);
+    console.error("Full error:", error);
     return NextResponse.json(
       { error: `Failed to extract profile: ${error.message}` },
       { status: 500 }

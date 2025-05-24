@@ -1,7 +1,6 @@
-
 import { NextResponse } from "next/server";
 import OpenAI from 'openai';
-import * as pdfjsLib from 'pdfjs-dist';
+import pdf from 'pdf-parse';
 
 if (!process.env.OPENAI_API_KEY) {
   throw new Error('OpenAI API key is not configured in environment variables');
@@ -15,33 +14,23 @@ export async function POST(request: Request) {
   try {
     const formData = await request.formData();
     const pdfFile = formData.get('pdf') as File;
-    
+
     if (!pdfFile) {
       return NextResponse.json({ error: "No PDF file provided" }, { status: 400 });
     }
 
     console.log("Processing PDF file:", pdfFile.name, "Size:", pdfFile.size);
 
-    // Convert File to ArrayBuffer
+    // Convert File to Buffer for pdf-parse
     const arrayBuffer = await pdfFile.arrayBuffer();
-    
-    // Load the PDF document
-    const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
-    const pdfDoc = await loadingTask.promise;
-    
-    // Extract text from all pages
-    let fullText = '';
-    for (let i = 1; i <= pdfDoc.numPages; i++) {
-      const page = await pdfDoc.getPage(i);
-      const textContent = await page.getTextContent();
-      const pageText = textContent.items
-        .map((item: any) => item.str)
-        .join(' ');
-      fullText += pageText + '\n';
-    }
+    const buffer = Buffer.from(arrayBuffer);
+
+    // Extract text from PDF
+    const pdfData = await pdf(buffer);
+    const pdfText = pdfData.text;
 
     console.log("Making OpenAI API request with extracted text...");
-    
+
     const response = await openai.chat.completions.create({
       model: "gpt-3.5-turbo",
       messages: [
@@ -51,7 +40,7 @@ export async function POST(request: Request) {
         },
         {
           role: "user",
-          content: `Extract the following information from this LinkedIn profile text and return as JSON with these fields: firstName, lastName, title, email, phone, summary. Here's the text:\n\n${fullText}`
+          content: `Extract the following information from this LinkedIn profile text and return as JSON with these fields: firstName, lastName, title, email, phone, summary. Here's the text:\n\n${pdfText}`
         }
       ],
       temperature: 0.3,

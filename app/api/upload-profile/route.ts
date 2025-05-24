@@ -1,7 +1,7 @@
 
 import { NextResponse } from "next/server";
 import OpenAI from 'openai';
-import pdf from 'pdf-parse';
+import * as pdfjsLib from 'pdfjs-dist';
 
 if (!process.env.OPENAI_API_KEY) {
   throw new Error('OpenAI API key is not configured in environment variables');
@@ -22,13 +22,23 @@ export async function POST(request: Request) {
 
     console.log("Processing PDF file:", pdfFile.name, "Size:", pdfFile.size);
 
-    // Convert File to Buffer for pdf-parse
+    // Convert File to ArrayBuffer
     const arrayBuffer = await pdfFile.arrayBuffer();
-    const buffer = Buffer.from(arrayBuffer);
     
-    // Extract text from PDF
-    const pdfData = await pdf(buffer);
-    const pdfText = pdfData.text;
+    // Load the PDF document
+    const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
+    const pdfDoc = await loadingTask.promise;
+    
+    // Extract text from all pages
+    let fullText = '';
+    for (let i = 1; i <= pdfDoc.numPages; i++) {
+      const page = await pdfDoc.getPage(i);
+      const textContent = await page.getTextContent();
+      const pageText = textContent.items
+        .map((item: any) => item.str)
+        .join(' ');
+      fullText += pageText + '\n';
+    }
 
     console.log("Making OpenAI API request with extracted text...");
     
@@ -41,7 +51,7 @@ export async function POST(request: Request) {
         },
         {
           role: "user",
-          content: `Extract the following information from this LinkedIn profile text and return as JSON with these fields: firstName, lastName, title, email, phone, summary. Here's the text:\n\n${pdfText}`
+          content: `Extract the following information from this LinkedIn profile text and return as JSON with these fields: firstName, lastName, title, email, phone, summary. Here's the text:\n\n${fullText}`
         }
       ],
       temperature: 0.3,

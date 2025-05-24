@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import OpenAI from 'openai';
 import * as pdfParse from 'pdf-parse/lib/pdf-parse.js';
+import { connectToDatabase } from '@/lib/mongodb';
+import { Profile } from '@/app/models/Profile';
 
 if (!process.env.OPENAI_API_KEY) {
   throw new Error('OpenAI API key is not configured in environment variables');

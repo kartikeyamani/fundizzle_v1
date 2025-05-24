@@ -2,8 +2,12 @@
 import { NextResponse } from "next/server";
 import OpenAI from 'openai';
 
+if (!process.env.OPENAI_API_KEY) {
+  throw new Error('OpenAI API key is not configured in environment variables');
+}
+
 const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
+  apiKey: process.env.OPENAI_API_KEY.trim(),
 });
 
 export async function POST(request: Request) {

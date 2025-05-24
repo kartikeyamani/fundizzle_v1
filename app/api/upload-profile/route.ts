@@ -1,6 +1,7 @@
 
 import { NextResponse } from "next/server";
 import OpenAI from 'openai';
+import pdf from 'pdf-parse';
 
 if (!process.env.OPENAI_API_KEY) {
   throw new Error('OpenAI API key is not configured in environment variables');
@@ -21,32 +22,30 @@ export async function POST(request: Request) {
 
     console.log("Processing PDF file:", pdfFile.name, "Size:", pdfFile.size);
 
+    // Convert File to Buffer for pdf-parse
     const arrayBuffer = await pdfFile.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
-    const base64PDF = buffer.toString('base64');
+    
+    // Extract text from PDF
+    const pdfData = await pdf(buffer);
+    const pdfText = pdfData.text;
 
-    console.log("Making OpenAI API request...");
+    console.log("Making OpenAI API request with extracted text...");
     
     const response = await openai.chat.completions.create({
-      model: "gpt-4-vision-0125",
+      model: "gpt-3.5-turbo",
       messages: [
         {
-          role: "user",
-          content: [
-            {
-              type: "text",
-              text: "Extract the following information from this LinkedIn PDF profile: full name, headline/title, email, phone, summary. Return as JSON with these fields: firstName, lastName, title, email, phone, summary"
-            },
-            {
-              type: "image_url",
-              image_url: {
-                url: `data:application/pdf;base64,${base64PDF}`,
-              },
-            },
-          ],
+          role: "system",
+          content: "You are a helpful assistant that extracts structured information from LinkedIn profiles. Return only valid JSON."
         },
+        {
+          role: "user",
+          content: `Extract the following information from this LinkedIn profile text and return as JSON with these fields: firstName, lastName, title, email, phone, summary. Here's the text:\n\n${pdfText}`
+        }
       ],
-      max_tokens: 4000,
+      temperature: 0.3,
+      max_tokens: 1000,
     });
 
     if (!response.choices[0]?.message?.content) {

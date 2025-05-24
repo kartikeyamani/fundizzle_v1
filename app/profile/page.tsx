@@ -42,13 +42,19 @@ export default function ProfilePage() {
   
   const handleLinkedInUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file || !file.name.toLowerCase().endsWith('.pdf')) {
+    if (!file) {
+      console.log("No file selected");
+      return;
+    }
+    
+    if (!file.name.toLowerCase().endsWith('.pdf')) {
       alert("Please upload a PDF file");
       return;
     }
     
     setIsUploading(true);
     try {
+      console.log("Uploading file:", file.name);
       const formData = new FormData();
       formData.append('pdf', file);
       
@@ -57,8 +63,14 @@ export default function ProfilePage() {
         body: formData
       });
       
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
       const data = await response.json();
       if (data.error) throw new Error(data.error);
+      
+      console.log("Received data:", data);
       
       // Update profile state with extracted data
       setProfile(prev => ({
@@ -226,11 +238,13 @@ export default function ProfilePage() {
                     className="hidden"
                     id="linkedin-pdf"
                   />
-                  <label htmlFor="linkedin-pdf">
+                  <label htmlFor="linkedin-pdf" className="cursor-pointer">
                     <Button
+                      type="button"
                       variant="outline"
                       className="cursor-pointer"
                       disabled={isUploading}
+                      onClick={() => document.getElementById('linkedin-pdf')?.click()}
                     >
                       {isUploading ? "Importing..." : "Import LinkedIn PDF"}
                     </Button>

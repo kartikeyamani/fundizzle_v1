@@ -45,4 +45,6 @@ Now you can run this locally! Here are the steps:
    \`\`\`
 5. **Open your browser** to `http://localhost:3000`
 
+6. Added CI/CD Integration
+
 The project should now run locally with all the necessary dependencies and configuration files!

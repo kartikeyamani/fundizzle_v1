@@ -73,18 +73,20 @@ export default function ProfilePage() {
       console.log("Received data:", data);
       
       // Update profile state with extracted data
-      setProfile(prev => ({
-        ...prev,
-        firstName: data.profileData.firstName || '',
-        lastName: data.profileData.lastName || '',
-        email: data.profileData.email || '',
-        phone: data.profileData.phone || '',
-        institution: '',
-        department: '',
-        title: data.profileData.title || '',
-        researchInterests: '',
-        summary: data.profileData.summary || '',
-      }));
+      if (data.profileData) {
+        setProfile(prev => ({
+          ...prev,
+          firstName: data.profileData.firstName || '',
+          lastName: data.profileData.lastName || '',
+          email: data.profileData.email || '',
+          phone: data.profileData.phone || '',
+          institution: data.profileData.experience?.[0]?.company || '',
+          department: '',
+          title: data.profileData.title || '',
+          researchInterests: '',
+          summary: data.profileData.summary || '',
+        }));
+      }
       
       alert("LinkedIn profile imported successfully!");
     } catch (error) {

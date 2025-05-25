@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { useRouter } from 'next/navigation';
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -22,6 +23,8 @@ interface ProfileData {
 }
 
 export default function ProfilePage() {
+
+  const router = useRouter();
   const [profile, setProfile] = useState<ProfileData>({
     firstName: "",
     lastName: "",
@@ -98,6 +101,7 @@ export default function ProfilePage() {
   };
 
   const handleSave = async () => {
+    
     try {
       const response = await fetch('/api/upload-profile', {
         method: 'PUT',

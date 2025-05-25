@@ -119,6 +119,7 @@ export default function ProfilePage() {
 
       const data = await response.json();
       alert("Profile saved successfully!");
+      router.push('/profile/orcid');
     } catch (error) {
       console.error("Save error:", error);
       alert("Failed to save profile. Please try again.");

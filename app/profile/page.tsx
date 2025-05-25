@@ -79,7 +79,10 @@ export default function ProfilePage() {
         lastName: data.profileData.lastName || '',
         email: data.profileData.email || '',
         phone: data.profileData.phone || '',
+        institution: '',
+        department: '',
         title: data.profileData.title || '',
+        researchInterests: '',
         summary: data.profileData.summary || '',
       }));
       
